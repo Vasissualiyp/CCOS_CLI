@@ -1,4 +1,5 @@
 import json
+from os import read
 import sys
 import pandas as pd
 from typing import Dict, Any, List, Optional
@@ -229,6 +230,31 @@ def convert_layer_to_names_with_dims(layout_data: Dict[str, Any],
     
     return grid
 
+def finger_to_keynum(side, finger):
+    if finger == "e": num = 0 # Extra (lowest) thumb
+    elif finger == "T": num = 1 # Bottom (middle) thumb
+    elif finger == "t": num = 2 # Top thumb
+    elif finger == "P": num = 3 # Pointing finger
+    elif finger == "m": num = 4 # Top middle finger
+    elif finger == "r": num = 5 # Top ring finger
+    elif finger == "p": num = 6 # Pinky
+    elif finger == "M": num = 7 # Bottom middle finger
+    elif finger == "R": num = 8 # Bottom ring finger
+    else: raise ValueError(f"Unknown finger: {finger}")
+    if side == "l": return num # Left side
+    elif side == "r": return num + 9 # Right side
+    else: raise ValueError(f"Unknown side: {side}")
+
+def get_key_from_pos(dfs, key):
+    layer = key[0]
+    side = key[1]
+    finger = key[2]
+    direction = key[3]
+    keynum = finger_to_keynum(side, finger)
+    df = dfs[int(layer)-1]
+    key = df[direction].iloc[keynum]
+    return key
+
 # You can modify the main function to accept optional rows/cols parameters
 def main_with_dims():
     """Main function that accepts optional dimension parameters."""
@@ -260,13 +286,18 @@ def main_with_dims():
     action_map = load_actions_data(actions_path)
     
     # Convert with dimensions
-    grid = convert_layer_to_names_with_dims(layout_data, action_map, layer_index, rows, cols)
-    df = pd.DataFrame(grid, columns=['c','e','n','w','s'])
-    print(df)
-    
-    if grid:
-        print_layer_grid(grid, layer_index)
+    dfs = []
+    for i in range(0,4):
+        grid = convert_layer_to_names_with_dims(layout_data, action_map, i, 
+                                                rows, cols)
+        df = pd.DataFrame(grid, columns=['c','e','n','w','s'])
+        dfs.append(df)
 
+    while True:
+        pos = input("Provide key position, i.e. layer 1, left hand, pinky, " + 
+                    "west: 1lpw: ")
+        key = get_key_from_pos(dfs, pos)
+        print(f"Your key is: {key}")
 if __name__ == "__main__":
     # Use the first version (auto-detect) or second version (with dims) as needed
     main_with_dims()
