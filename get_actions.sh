@@ -29,11 +29,19 @@ get_firmware_list() {
 get_metadata() {
 	device="$1"
 	firmware="$2"
-	dataset_name="actions.json"
 	dataset_name="$3"
 	curl -X 'GET' \
 		"${websrc}/${device}/${firmware}/${dataset_name}" \
 		-H 'accept: */*'
+}
+
+save_metadata() {
+	device="$1"
+	firmware="$2"
+	dataset_name="$3"
+	bracket="$4"
+	json="$(get_metadata $device $firmware $dataset_name)"
+	echo "$json" | sed "s/$bracket,/$bracket,\n/g"> $dataset_name
 }
 
 #device_names=$(get_name_from_json "$(get_device_list)")
@@ -43,6 +51,6 @@ get_metadata() {
 device="m4g_s3"
 firmware="3.0.0-gamma.1"
 echo "$device $firmware"
-action_names="$(get_metadata $device $firmware 'actions.json')"
-echo "$action_names"
+save_metadata $device $firmware "actions.json" "}"
+save_metadata $device $firmware "factory_layout.json" "]"
 #firmware_ver=$(get_name_from_json "$(get_firmware_list $device)")
