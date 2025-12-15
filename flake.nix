@@ -19,6 +19,7 @@
         pythonEnv = python.withPackages (ps: with ps; [
 		  typing
 		  pandas
+		  pyserial
         ]);
       in
       {
